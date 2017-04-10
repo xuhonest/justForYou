@@ -1,0 +1,130 @@
+// num 数字
+    // step 小数点位数【默认两位】
+    commafy(num, step) {
+        var step = step || 2;
+        var num = num.toString().replace(/,/g, ''); //避免带逗号的数据传入
+        var value = String(parseFloat(num)); // 吧传入数据转换为float后再转换为字符串
+        var floatSection="";
+
+        var arr = value.split('.');
+        var isFloat = arr.length == 2; //判断是否是浮点数
+        if (isFloat) {
+            floatSection = arr[1].substr(0, step); // 小数部分
+            value = arr[0]; //整数部分
+        }
+
+        // 小数点前面部分设置千分位
+        var microValue = value.replace(/,/g, '').replace(/\d+?(?=(?:\d{3})+$)/g, function (s) {
+            // console.log(s)
+            return s + ',';
+        });
+
+        if (isFloat) {
+            microValue = microValue + '.' + floatSection
+        } else {
+            microValue = microValue
+        }
+
+        if (typeof microValue == 'undefined' || microValue == 'NaN') {
+            microValue = ""
+        }
+
+        return microValue;
+    },
+
+// react 千分位
+//数字千分位加, 
+import React from 'react';
+import antd from 'antd';
+import {
+    Input,
+} from 'antd';
+var MicroInput = React.createClass({
+
+    getInitialState() {
+        return {
+            microValue: '',   //将输入框初始为空
+        }
+    },
+    componentWillReceiveProps(nextProps) {
+        if (typeof nextProps.value == 'undefined' || nextProps.value == 'NaN' || nextProps.value == null) {
+            this.setState({
+                microValue: ''
+            })
+            return
+        }
+        var value = String(nextProps.value);
+        var arr = value.split('.');
+        var isFloat = arr.length == 2;
+        if (isFloat) {
+            var floatSection = arr[1];
+            value = arr[0];//整数部分
+        }
+
+
+        var microValue = value.replace(/,/g, '').replace(/\d+?(?=(?:\d{3})+$)/g, function (s) {
+            return s + ',';
+        });
+        if (isFloat) {
+            microValue = microValue + '.' + floatSection
+        }
+        this.setState({
+            microValue
+        })
+
+    },
+    //当组件加载结束，查看输入框是否有值，如果有值，则将数值千分位，如果没有，就设为''
+    componentDidMount() {
+        var props = this.props;
+        if (typeof props.value == 'undefined' || props.value == 'NaN' || props.value == null) {
+            this.setState({
+                microValue: ''
+            })
+            return
+        }
+        var value = String(props.value);
+        var arr = value.split('.');
+        var isFloat = arr.length == 2;
+        if (isFloat) {
+            var floatSection = arr[1];
+            value = arr[0];//整数部分
+        }
+
+
+        var microValue = value.replace(/,/g, '').replace(/\d+?(?=(?:\d{3})+$)/g, function (s) {
+            return s + ',';
+        });
+        if (isFloat) {
+            microValue = microValue + '.' + floatSection
+        }
+        this.setState({
+            microValue
+        })
+    },
+
+    //当输入框状态改变时，出发changeValue函数
+    changeValue(e) {
+        var microValue = e.target.value;
+        if (microValue == "") {
+            this.props.onChange(""); //如果输入值为空,触发onChange，实际就是触发 componentWillReceiveProps
+            return
+        }
+        var arr = microValue.split('.');    //将小数与整数分开
+        var value = parseInt(arr[0].split(',').join(''));  //将整数部分 通过join组成一个字符串
+        if (arr.length == 2) {
+            if (arr[1] == '') {
+                value = String(value) + '.';
+            }
+            else value = parseFloat(value + '.' + arr[1])
+        }
+        if (String(value) == 'NaN') {
+            value = '';
+        }
+        this.props.onChange(value);  //触发componentWillReceiveProps
+    },
+    render() {
+        var props = this.props;
+        return <Input {...props} value={this.state.microValue} onChange={this.changeValue} type="text" autoComplete="off"  />
+    },
+});
+module.exports = MicroInput;
